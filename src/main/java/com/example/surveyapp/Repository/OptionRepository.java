@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface OptionRepository extends JpaRepository<Option,Long> {
 
-    List<Question> findByQuestionIdOrderByOrderAsc(Long questionId);
+    List<Option> findByQuestionIdOrderByPositionAsc(Long questionId);
 }

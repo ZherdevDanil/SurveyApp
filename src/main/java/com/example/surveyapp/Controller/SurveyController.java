@@ -27,18 +27,11 @@ public class SurveyController {
         this.jwtService = jwtService;
     }
 
-    private String extractUsername(HttpServletRequest request){
-        final String authHeader = request.getHeader("Authorization");
-        if(authHeader == null || !authHeader.startsWith("Bearer ")){
-            return null;
-        }
-        String jwt = authHeader.substring(7);
-        return jwtService.extractUsername(jwt);
-    }
+
 
     @PostMapping
     public ResponseEntity<Survey> createSurvey(@RequestBody Survey survey, HttpServletRequest httpServletRequest) {
-        String username = extractUsername(httpServletRequest);
+        String username = surveyService.extractUsername(httpServletRequest);
         if (username == null ) return ResponseEntity.status(401).build();
         User user = userRepository.findByUsername(username).orElseThrow();
         survey.setCreator(user);
@@ -56,7 +49,7 @@ public class SurveyController {
             return ResponseEntity.ok(survey);
         }
 
-        String username = extractUsername(httpServletRequest);
+        String username = surveyService.extractUsername(httpServletRequest);
         if (username == null) {
             return ResponseEntity.status(401).build();
         }
@@ -67,7 +60,7 @@ public class SurveyController {
 
     @GetMapping
     public ResponseEntity<List<Survey>> getAllUserSurveys(HttpServletRequest httpServletRequest) {
-        String username = extractUsername(httpServletRequest);
+        String username = surveyService.extractUsername(httpServletRequest);
         if (username == null) return ResponseEntity.status(401).build();
 
         User user = userRepository.findByUsername(username).orElseThrow();
@@ -77,7 +70,7 @@ public class SurveyController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSurvey(@PathVariable Long id, HttpServletRequest httpServletRequest) throws AccessDeniedException {
-        String username = extractUsername(httpServletRequest);
+        String username = surveyService.extractUsername(httpServletRequest);
         if (username == null) return ResponseEntity.status(401).build();
 
         Survey survey = surveyService.findById(id).orElseThrow();
@@ -93,7 +86,7 @@ public class SurveyController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Survey> updateSurvey(@PathVariable Long id, @RequestBody Survey updatedSurvey, HttpServletRequest httpServletRequest ) throws AccessDeniedException {
-        String username = extractUsername(httpServletRequest);
+        String username = surveyService.extractUsername(httpServletRequest);
         if (username == null) return ResponseEntity.status(401).build();
 
         Survey survey = surveyService.findById(id).orElseThrow();

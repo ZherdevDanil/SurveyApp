@@ -4,6 +4,8 @@ import com.example.surveyapp.Entity.Survey;
 import com.example.surveyapp.Entity.User;
 import com.example.surveyapp.Repository.SurveyRepository;
 import com.example.surveyapp.Repository.UserRepository;
+import com.example.surveyapp.Security.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,9 +16,12 @@ public class SurveyService {
     public final SurveyRepository surveyRepository;
     public final UserRepository userRepository;
 
-    public SurveyService(SurveyRepository surveyRepository, UserRepository userRepository){
+    public final JwtService jwtService;
+
+    public SurveyService(SurveyRepository surveyRepository, UserRepository userRepository, JwtService jwtService){
         this.surveyRepository=surveyRepository;
         this.userRepository = userRepository;
+        this.jwtService = jwtService;
     }
 
     public List<Survey> getSurveys(Long id){
@@ -45,5 +50,15 @@ public class SurveyService {
 
     public Survey save(Survey survey){
         return surveyRepository.save(survey);
+    }
+
+
+    public String extractUsername(HttpServletRequest request){
+        final String authHeader = request.getHeader("Authorization");
+        if(authHeader == null || !authHeader.startsWith("Bearer ")){
+            return null;
+        }
+        String jwt = authHeader.substring(7);
+        return jwtService.extractUsername(jwt);
     }
 }

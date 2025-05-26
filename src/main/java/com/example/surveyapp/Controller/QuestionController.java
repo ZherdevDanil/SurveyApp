@@ -1,40 +1,56 @@
 package com.example.surveyapp.Controller;
 
+import com.example.surveyapp.Entity.Question;
 import com.example.surveyapp.Entity.Survey;
+import com.example.surveyapp.Service.QuestionService;
 import com.example.surveyapp.Service.SurveyService;
+import com.example.surveyapp.dto.CreateQuestionRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/questions")
+@RequestMapping("/api")
 public class QuestionController {
-    private final SurveyService surveyService;
+    private final QuestionService questionService;
 
+    private final SurveyService surveyService
+            ;
 
-    public QuestionController(SurveyService surveyService) {
+    public QuestionController(QuestionService questionService, SurveyService surveyService) {
+        this.questionService = questionService;
         this.surveyService = surveyService;
     }
 
-    public ResponseEntity<Survey> createSurvey(@RequestBody Survey survey){
-        Survey created = surveyService.createSurvey(survey);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    @PostMapping("/surveys/{surveyId}/questions")
+    public ResponseEntity<Question> createQuestion(@PathVariable Long surveyId, @RequestBody CreateQuestionRequest createQuestionRequest, HttpServletRequest httpServletRequest) throws AccessDeniedException {
+        String username = surveyService.extractUsername(httpServletRequest);
+        Question created = questionService.createQuestion(surveyId,createQuestionRequest,username);
+        return ResponseEntity.ok(created);
     }
 
-    public ResponseEntity<Survey> getSurveyById(@PathVariable Long id){
-        return surveyService.findById(id).map(survey -> new ResponseEntity<>(survey, HttpStatus.OK)).orElseGet(()->new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    @GetMapping("/surveys/{surveyId}/questions")
+    public ResponseEntity<List<Question>> getQuestionsBySurvey(@PathVariable Long surveyId,HttpServletRequest httpServletRequest) throws AccessDeniedException {
+        String username = surveyService.extractUsername(httpServletRequest);
+        List<Question> questions = questionService.getQuestionsBySurvey(surveyId,username);
+        return ResponseEntity.ok(questions);
     }
 
-    @GetMapping
-    public ResponseEntity<List<Survey>> getAllSurveys(Long id) {
-        return new ResponseEntity<>(surveyService.getSurveys(id), HttpStatus.OK);
+    @PutMapping("/questions/{questionId}")
+    public ResponseEntity<Question> updateQuestion(@PathVariable Long questionId,@RequestBody CreateQuestionRequest createQuestionRequest,HttpServletRequest httpServletRequest) throws AccessDeniedException {
+        String username = surveyService.extractUsername(httpServletRequest);
+        Question updatedQuestion = questionService.updateQuestion(questionId,createQuestionRequest,username);
+        return ResponseEntity.ok(updatedQuestion);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSurvey(@PathVariable Long id) {
-        surveyService.deleteSurvey(id);
+    @DeleteMapping("/questions/{questionId}")
+    public ResponseEntity<Void> deleteQuestion(@PathVariable Long questionId,HttpServletRequest httpServletRequest) throws AccessDeniedException {
+        String username = surveyService.extractUsername(httpServletRequest);
+        questionService.deleteQuestion(questionId,username);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
