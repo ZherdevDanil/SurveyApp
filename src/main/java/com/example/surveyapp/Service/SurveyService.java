@@ -1,6 +1,7 @@
 package com.example.surveyapp.Service;
 
 import com.example.surveyapp.Entity.Survey;
+import com.example.surveyapp.Entity.User;
 import com.example.surveyapp.Repository.SurveyRepository;
 import com.example.surveyapp.Repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,17 @@ public class SurveyService {
         return surveyRepository.findById(id);
     }
 
+
+    public List<Survey> findByUser(User user){
+        List<Survey> surveys = surveyRepository.findByCreatorId(user.getId());
+        return surveys;
+    }
+
     public void deleteSurvey(Long id){
         surveyRepository.deleteById(id);
+    }
+
+    public Survey save(Survey survey){
+        return surveyRepository.save(survey);
     }
 }

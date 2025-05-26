@@ -18,14 +18,13 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration}")
-    private long jwtExpiration; // у мілісекундах, наприклад: 3600000 = 1 година
+    @Value("${jwt.lifetime}")
+    private long jwtExpiration;
 
     private SecretKey secretKey;
 
     @PostConstruct
     public void init() {
-        // Створення секретного ключа з рядка
         this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 

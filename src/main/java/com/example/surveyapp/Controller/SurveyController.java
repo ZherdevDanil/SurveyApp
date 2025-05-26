@@ -1,44 +1,110 @@
 package com.example.surveyapp.Controller;
 
 import com.example.surveyapp.Entity.Survey;
+import com.example.surveyapp.Entity.User;
+import com.example.surveyapp.Repository.UserRepository;
+import com.example.surveyapp.Security.JwtService;
 import com.example.surveyapp.Service.SurveyService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.channels.AcceptPendingException;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/surveys")
 public class SurveyController {
     private final SurveyService surveyService;
-
-    public SurveyController(SurveyService surveyService) {
+    private final UserRepository userRepository;
+    private final JwtService jwtService;
+    public SurveyController(SurveyService surveyService, UserRepository userRepository, JwtService jwtService) {
         this.surveyService = surveyService;
+        this.userRepository = userRepository;
+        this.jwtService = jwtService;
+    }
+
+    private String extractUsername(HttpServletRequest request){
+        final String authHeader = request.getHeader("Authorization");
+        if(authHeader == null || !authHeader.startsWith("Bearer ")){
+            return null;
+        }
+        String jwt = authHeader.substring(7);
+        return jwtService.extractUsername(jwt);
     }
 
     @PostMapping
-    public ResponseEntity<Survey> createSurvey(@RequestBody Survey survey) {
+    public ResponseEntity<Survey> createSurvey(@RequestBody Survey survey, HttpServletRequest httpServletRequest) {
+        String username = extractUsername(httpServletRequest);
+        if (username == null ) return ResponseEntity.status(401).build();
+        User user = userRepository.findByUsername(username).orElseThrow();
+        survey.setCreator(user);
         Survey created = surveyService.createSurvey(survey);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Survey> getSurveyById(@PathVariable Long id) {
-        return surveyService.findById(id)
-                .map(survey -> new ResponseEntity<>(survey, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<Survey> getSurveyById(@PathVariable Long id, HttpServletRequest httpServletRequest) throws AccessDeniedException {
+        Optional<Survey> surveyOptional = surveyService.findById(id);
+        if (surveyOptional.isEmpty()) return ResponseEntity.notFound().build();
+        Survey survey = surveyOptional.get();
+
+        if (!survey.isRequireAuth()) {
+            return ResponseEntity.ok(survey);
+        }
+
+        String username = extractUsername(httpServletRequest);
+        if (username == null) {
+            return ResponseEntity.status(401).build();
+        }
+        else {
+            return ResponseEntity.ok(survey);
+        }
     }
 
     @GetMapping
-    public ResponseEntity<List<Survey>> getAllSurveys(Long userId) {
-        return new ResponseEntity<>(surveyService.getSurveys(userId), HttpStatus.OK);
+    public ResponseEntity<List<Survey>> getAllUserSurveys(HttpServletRequest httpServletRequest) {
+        String username = extractUsername(httpServletRequest);
+        if (username == null) return ResponseEntity.status(401).build();
+
+        User user = userRepository.findByUsername(username).orElseThrow();
+        List<Survey> surveys = surveyService.findByUser(user);
+        return ResponseEntity.ok(surveys);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSurvey(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteSurvey(@PathVariable Long id, HttpServletRequest httpServletRequest) throws AccessDeniedException {
+        String username = extractUsername(httpServletRequest);
+        if (username == null) return ResponseEntity.status(401).build();
+
+        Survey survey = surveyService.findById(id).orElseThrow();
+
+        if (!survey.getCreator().getUsername().equals(username)){
+            throw new AccessDeniedException("You can delete only your own surveys");
+
+        }
+
         surveyService.deleteSurvey(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Survey> updateSurvey(@PathVariable Long id, @RequestBody Survey updatedSurvey, HttpServletRequest httpServletRequest ) throws AccessDeniedException {
+        String username = extractUsername(httpServletRequest);
+        if (username == null) return ResponseEntity.status(401).build();
+
+        Survey survey = surveyService.findById(id).orElseThrow();
+        if (!survey.getCreator().getUsername().equals(username)){
+            throw new AccessDeniedException("You can update only your surveys");
+        }
+        survey.setTitle(updatedSurvey.getTitle());
+        survey.setDescription(updatedSurvey.getDescription());
+        survey.setRequireAuth(updatedSurvey.isRequireAuth());
+
+        return ResponseEntity.ok(surveyService.save(survey));
     }
 }
 
