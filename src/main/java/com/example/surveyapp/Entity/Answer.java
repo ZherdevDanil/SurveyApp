@@ -1,26 +1,38 @@
 package com.example.surveyapp.Entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Entity
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Answer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "response_id")
-    private Response response;
+    private User respondent;
 
-    @ManyToOne
-    @JoinColumn(name = "question_id")
+    @ManyToOne(optional = false)
     private Question question;
 
-    @ManyToOne
-    @JoinColumn(name = "selected_option_id")
-    private Option selectedOption; // null для текстових відповідей
+    private String textAnswer;
 
-    private String textAnswer; // null для тестових варіантів
+    @ManyToMany
+    @JoinTable(
+            name = "answer_selected_options",
+            joinColumns = @JoinColumn(name = "answer_id"),
+            inverseJoinColumns = @JoinColumn(name = "option_id")
+    )
+    private List<Option> selectedOptions;
+
+    private Long timestamp;
 }
