@@ -18,4 +18,6 @@ public interface AnswerRepository extends JpaRepository<Answer,Long> {
 
     List<Answer> findByQuestion_Survey_Id(Long id);
 
+    boolean existsByQuestionIdAndRespondent_Username(Long questionId, String username);
+
 }

@@ -5,12 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @Builder
-public class CreateOptionRequest {
+public class PublicSurveysResponse {
     private Long id;
-    private String text;
-    private Integer position;
+    private String title;
+    private String description;
 }

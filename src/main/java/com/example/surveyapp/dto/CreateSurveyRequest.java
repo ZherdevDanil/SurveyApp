@@ -1,28 +1,24 @@
-package com.example.surveyapp.Entity;
+package com.example.surveyapp.dto;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 @Data
-@Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Survey {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class CreateSurveyRequest {
     private Long id;
-
     private String title;
     private String description;
+
     private boolean requireAuth;
-    private boolean isActive;
+    @JsonProperty("isPublic")
     private boolean isPublic;
-
-    @ManyToOne
-    @JoinColumn(name = "creator_id")
-    private User creator;
-
+    /*private List<CreateQuestionRequest> questions;*/
+    private List<QuestionUpdateDto> questions;
 }

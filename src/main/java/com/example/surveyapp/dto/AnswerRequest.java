@@ -7,5 +7,5 @@ import java.util.List;
 public class AnswerRequest {
     private Long questionId;
     private String textAnswer;
-    private List<Long> selecretOptionId;
+    private List<Long> selectedOptionId;
 }

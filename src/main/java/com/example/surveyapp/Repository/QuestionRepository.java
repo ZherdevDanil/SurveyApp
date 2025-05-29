@@ -8,4 +8,7 @@ import java.util.List;
 @Repository
 public interface QuestionRepository extends JpaRepository<Question,Long> {
     List<Question> findBySurveyIdOrderByPositionAsc(Long surveyId);
+
+    List<Question> findBySurveyId(Long surveyId);
+
 }

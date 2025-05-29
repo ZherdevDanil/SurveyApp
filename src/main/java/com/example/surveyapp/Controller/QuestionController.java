@@ -5,6 +5,7 @@ import com.example.surveyapp.Entity.Survey;
 import com.example.surveyapp.Service.QuestionService;
 import com.example.surveyapp.Service.SurveyService;
 import com.example.surveyapp.dto.CreateQuestionRequest;
+import com.example.surveyapp.dto.QuestionUpdateDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,9 +28,9 @@ public class QuestionController {
     }
 
     @PostMapping("/surveys/{surveyId}/questions")
-    public ResponseEntity<Question> createQuestion(@PathVariable Long surveyId, @RequestBody CreateQuestionRequest createQuestionRequest, HttpServletRequest httpServletRequest) throws AccessDeniedException {
+    public ResponseEntity<Question> createQuestion(@PathVariable Long surveyId, @RequestBody QuestionUpdateDto questionUpdateDto/*CreateQuestionRequest*/, HttpServletRequest httpServletRequest) throws AccessDeniedException {
         String username = surveyService.extractUsername(httpServletRequest);
-        Question created = questionService.createQuestion(surveyId,createQuestionRequest,username);
+        Question created = questionService.createQuestion(surveyId,questionUpdateDto,username);
         return ResponseEntity.ok(created);
     }
 
@@ -41,9 +42,9 @@ public class QuestionController {
     }
 
     @PutMapping("/questions/{questionId}")
-    public ResponseEntity<Question> updateQuestion(@PathVariable Long questionId,@RequestBody CreateQuestionRequest createQuestionRequest,HttpServletRequest httpServletRequest) throws AccessDeniedException {
+    public ResponseEntity<Question> updateQuestion(@PathVariable Long questionId, @RequestBody QuestionUpdateDto questionUpdateDto/*CreateQuestionRequest createQuestionRequest*/, HttpServletRequest httpServletRequest) throws AccessDeniedException {
         String username = surveyService.extractUsername(httpServletRequest);
-        Question updatedQuestion = questionService.updateQuestion(questionId,createQuestionRequest,username);
+        Question updatedQuestion = questionService.updateQuestion(questionId,questionUpdateDto,username);
         return ResponseEntity.ok(updatedQuestion);
     }
 

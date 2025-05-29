@@ -7,10 +7,7 @@ import com.example.surveyapp.Service.SurveyService;
 import com.example.surveyapp.dto.AnswerRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
@@ -34,7 +31,17 @@ public class AnswerController {
         if (httpServletRequest.getHeader("Authorization")!=null && httpServletRequest.getHeader("Authorization").startsWith("Bearer ")){
             username = surveyService.extractUsername(httpServletRequest);
         }
-        List<Answer> answer = answerService.sibmitAnswers(answerRequests,username);
+        List<Answer> answer = answerService.submitAnswers(answerRequests,username);
         return ResponseEntity.ok(answer);
+    }
+
+    @GetMapping("/check")
+    public ResponseEntity<Boolean> hasUserSubmitted(@RequestParam Long surveyId,HttpServletRequest httpServletRequest){
+        String username = null;
+        if (httpServletRequest.getHeader("Authorization")!=null && httpServletRequest.getHeader("Authorization").startsWith("Bearer ")){
+            username = surveyService.extractUsername(httpServletRequest);
+        }
+        boolean isAlreadySubmitted = answerService.hasUserSubmitted(surveyId,username);
+        return ResponseEntity.ok(isAlreadySubmitted);
     }
 }

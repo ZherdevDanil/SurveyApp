@@ -7,16 +7,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CreateQuestionRequest {
+public class QuestionUpdateDto {
     private Long id;
     private String text;
     private QuestionType type;
     private Integer position;
-    private List<String> options;
-    //private List<CreateOptionRequest> options;
+    private List<CreateOptionRequest> options;
 }

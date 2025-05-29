@@ -7,7 +7,9 @@ import com.example.surveyapp.Entity.Survey;
 import com.example.surveyapp.Repository.OptionRepository;
 import com.example.surveyapp.Repository.QuestionRepository;
 import com.example.surveyapp.Repository.SurveyRepository;
+import com.example.surveyapp.dto.CreateOptionRequest;
 import com.example.surveyapp.dto.CreateQuestionRequest;
+import com.example.surveyapp.dto.QuestionUpdateDto;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -39,9 +41,12 @@ public class QuestionService {
         return questionRepository.save(question);
     }
 
-    public Question createQuestion(Long surveyId, CreateQuestionRequest request, String username) throws AccessDeniedException {
-        Survey survey = surveyRepository.findById(surveyId).orElseThrow(()->new EntityNotFoundException("Survey not found"));
-        if (!survey.getCreator().getUsername().equals(username)){
+
+    public Question createQuestion(Long surveyId, QuestionUpdateDto request, String username) throws AccessDeniedException {
+        Survey survey = surveyRepository.findById(surveyId)
+                .orElseThrow(() -> new EntityNotFoundException("Survey not found"));
+
+        if (!survey.getCreator().getUsername().equals(username)) {
             throw new AccessDeniedException("You are not owner of this survey");
         }
 
@@ -54,23 +59,22 @@ public class QuestionService {
 
         Question savedQuestion = questionRepository.save(question);
 
-        if (request.getType() == QuestionType.SINGLE_CHOICE || request.getType() == QuestionType.MULTIPLE_CHOICE){
-            List<Option> options = new ArrayList<>();
-            int index = 0;
-            for (String optionText : request.getOptions()){
-                Option option = Option.builder()
-                        .question(savedQuestion)
-                        .text(optionText)
-                        .position(index++)
-                        .build();
-                options.add(option);
-            }
+        if (request.getType() == QuestionType.SINGLE_CHOICE || request.getType() == QuestionType.MULTIPLE_CHOICE) {
+            List<Option> options = request.getOptions().stream()
+                    .map(o -> Option.builder()
+                            .question(savedQuestion)
+                            .text(o.getText())
+                            .position(o.getPosition())
+                            .build())
+                    .toList();
 
             optionRepository.saveAll(options);
             savedQuestion.setOptions(options);
         }
+
         return savedQuestion;
     }
+
 
 
     public List<Question> getQuestionsBySurvey(Long surveyId,String username) throws AccessDeniedException {
@@ -96,25 +100,25 @@ public class QuestionService {
     }
 
     @Transactional
-    public Question updateQuestion(Long questionId, CreateQuestionRequest request, String username) throws AccessDeniedException {
+    public Question updateQuestion(Long questionId, QuestionUpdateDto questionUpdateDto, String username) throws AccessDeniedException {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new EntityNotFoundException("Question not found"));
 
         if (!question.getSurvey().getCreator().getUsername().equals(username)) {
             throw new AccessDeniedException("You are not allowed to change question");
         }
-        question.setText(request.getText());
-        question.setQuestionType(request.getType());
-        question.setPosition(request.getPosition());
+        question.setText(questionUpdateDto.getText());
+        question.setQuestionType(questionUpdateDto.getType());
+        question.setPosition(questionUpdateDto.getPosition());
 
-        if (request.getType() == QuestionType.SINGLE_CHOICE || request.getType() == QuestionType.MULTIPLE_CHOICE) {
+        if (questionUpdateDto.getType() == QuestionType.SINGLE_CHOICE || questionUpdateDto.getType() == QuestionType.MULTIPLE_CHOICE) {
             question.getOptions().clear();
 
             int index = 0;
-            for (String text : request.getOptions()) {
+            for ( CreateOptionRequest createOptionRequest : questionUpdateDto.getOptions()) {
                 Option option = Option.builder()
                         .question(question)
-                        .text(text)
+                        .text(createOptionRequest.getText())
                         .position(index++)
                         .build();
                 question.getOptions().add(option);

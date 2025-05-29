@@ -5,6 +5,9 @@ import com.example.surveyapp.Entity.User;
 import com.example.surveyapp.Repository.UserRepository;
 import com.example.surveyapp.Security.JwtService;
 import com.example.surveyapp.Service.SurveyService;
+import com.example.surveyapp.dto.CreateSurveyRequest;
+import com.example.surveyapp.dto.PublicSurveysResponse;
+import com.example.surveyapp.dto.UpdateSurveyRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,35 +31,25 @@ public class SurveyController {
     }
 
 
-
     @PostMapping
-    public ResponseEntity<Survey> createSurvey(@RequestBody Survey survey, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Survey> createSurvey(@RequestBody CreateSurveyRequest createSurveyRequest, HttpServletRequest httpServletRequest) {
         String username = surveyService.extractUsername(httpServletRequest);
         if (username == null ) return ResponseEntity.status(401).build();
-        User user = userRepository.findByUsername(username).orElseThrow();
-        survey.setCreator(user);
-        Survey created = surveyService.createSurvey(survey);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+        Survey createdSurvey = surveyService.createSurvey(createSurveyRequest,username);
+        return ResponseEntity.ok(createdSurvey);
     }
+    @GetMapping("/public")
+    public ResponseEntity<List<PublicSurveysResponse>> getAllPublicSurveys(){
+        List<PublicSurveysResponse> publicSurveysResponse = surveyService.getAllPublicSurveys();
+        return ResponseEntity.ok(publicSurveysResponse);
+    }
+
 
     @GetMapping("/{id}")
-    public ResponseEntity<Survey> getSurveyById(@PathVariable Long id, HttpServletRequest httpServletRequest) throws AccessDeniedException {
-        Optional<Survey> surveyOptional = surveyService.findById(id);
-        if (surveyOptional.isEmpty()) return ResponseEntity.notFound().build();
-        Survey survey = surveyOptional.get();
-
-        if (!survey.isRequireAuth()) {
-            return ResponseEntity.ok(survey);
-        }
-
-        String username = surveyService.extractUsername(httpServletRequest);
-        if (username == null) {
-            return ResponseEntity.status(401).build();
-        }
-        else {
-            return ResponseEntity.ok(survey);
-        }
+    public ResponseEntity<UpdateSurveyRequest> getSurveyById(@PathVariable Long id) {
+        return ResponseEntity.ok(surveyService.getSurveyDetails(id));
     }
+
 
     @GetMapping
     public ResponseEntity<List<Survey>> getAllUserSurveys(HttpServletRequest httpServletRequest) {

@@ -59,17 +59,17 @@ public class AnswerService {
                 answer.setTextAnswer(answerRequest.getTextAnswer());
             }
             case SINGLE_CHOICE, MULTIPLE_CHOICE -> {
-                if (answerRequest.getSelecretOptionId() == null || answerRequest.getSelecretOptionId().isEmpty()){
+                if (answerRequest.getSelectedOptionId() == null || answerRequest.getSelectedOptionId().isEmpty()){
                     throw new IllegalArgumentException("Options must be provided");
                 }
-                List<Option> selectedOptions = optionRepository.findAllById(answerRequest.getSelecretOptionId());
+                List<Option> selectedOptions = optionRepository.findAllById(answerRequest.getSelectedOptionId());
                 answer.setSelectedOptions(selectedOptions);
             }
         }
         return answerRepository.save(answer);
     }
 
-    public List<Answer> sibmitAnswers(List<AnswerRequest> answerRequests, String username) throws AccessDeniedException {
+    public List<Answer> submitAnswers(List<AnswerRequest> answerRequests, String username) throws AccessDeniedException {
         List<Answer> answers = new ArrayList<>();
 
         for (AnswerRequest answerRequest : answerRequests){
@@ -77,4 +77,14 @@ public class AnswerService {
         }
         return answers;
     }
+
+    public boolean hasUserSubmitted(Long surveyId, String username) {
+        Question question = questionRepository.findBySurveyId(surveyId).get(0);
+        if (username != null) {
+            return answerRepository.existsByQuestionIdAndRespondent_Username(question.getId(), username);
+        } else {
+            return false;
+        }
+    }
+
 }
