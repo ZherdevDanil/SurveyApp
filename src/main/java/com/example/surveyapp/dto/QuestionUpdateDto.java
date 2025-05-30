@@ -16,5 +16,6 @@ public class QuestionUpdateDto {
     private String text;
     private QuestionType type;
     private Integer position;
+    private boolean canEdit;
     private List<CreateOptionRequest> options;
 }

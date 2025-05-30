@@ -1,10 +1,7 @@
 package com.example.surveyapp.Service;
 
 import com.example.surveyapp.Entity.*;
-import com.example.surveyapp.Repository.OptionRepository;
-import com.example.surveyapp.Repository.QuestionRepository;
-import com.example.surveyapp.Repository.SurveyRepository;
-import com.example.surveyapp.Repository.UserRepository;
+import com.example.surveyapp.Repository.*;
 import com.example.surveyapp.Security.JwtService;
 import com.example.surveyapp.dto.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,13 +22,15 @@ public class SurveyService {
     private final QuestionRepository questionRepository;
 
     private final OptionRepository optionRepository;
+    private final AnswerRepository answerRepository;
 
-    public SurveyService(SurveyRepository surveyRepository, UserRepository userRepository, JwtService jwtService, QuestionRepository questionRepository, OptionRepository optionRepository){
+    public SurveyService(SurveyRepository surveyRepository, UserRepository userRepository, JwtService jwtService, QuestionRepository questionRepository, OptionRepository optionRepository, AnswerRepository answerRepository){
         this.surveyRepository=surveyRepository;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.questionRepository = questionRepository;
         this.optionRepository = optionRepository;
+        this.answerRepository = answerRepository;
     }
 
     public List<Survey> getSurveys(Long id){
@@ -105,6 +104,8 @@ public class SurveyService {
         Survey survey = surveyRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Survey not found"));
 
+
+
         List<Question> questions = questionRepository.findBySurveyId(survey.getId());
 
         List<QuestionUpdateDto> questionDtos = questions.stream()
@@ -122,6 +123,7 @@ public class SurveyService {
                             .text(q.getText())
                             .type(q.getQuestionType())
                             .position(q.getPosition())
+                            .canEdit(!answerRepository.existsByQuestionId(q.getId()))
                             .options(optionDtos)
                             .build();
                 })

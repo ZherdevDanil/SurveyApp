@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -42,10 +43,14 @@ public class QuestionController {
     }
 
     @PutMapping("/questions/{questionId}")
-    public ResponseEntity<Question> updateQuestion(@PathVariable Long questionId, @RequestBody QuestionUpdateDto questionUpdateDto/*CreateQuestionRequest createQuestionRequest*/, HttpServletRequest httpServletRequest) throws AccessDeniedException {
-        String username = surveyService.extractUsername(httpServletRequest);
-        Question updatedQuestion = questionService.updateQuestion(questionId,questionUpdateDto,username);
-        return ResponseEntity.ok(updatedQuestion);
+    public ResponseEntity<?> updateQuestion(@PathVariable Long questionId, @RequestBody QuestionUpdateDto questionUpdateDto/*CreateQuestionRequest createQuestionRequest*/, HttpServletRequest httpServletRequest) throws AccessDeniedException {
+        try{
+            String username = surveyService.extractUsername(httpServletRequest);
+            Question updatedQuestion = questionService.updateQuestion(questionId,questionUpdateDto,username);
+            return ResponseEntity.ok(updatedQuestion);}
+        catch (IllegalArgumentException ex){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error",ex.getMessage()));
+        }
     }
 
     @DeleteMapping("/questions/{questionId}")

@@ -47,6 +47,7 @@ public class SurveyController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UpdateSurveyRequest> getSurveyById(@PathVariable Long id) {
+
         return ResponseEntity.ok(surveyService.getSurveyDetails(id));
     }
 
@@ -89,6 +90,7 @@ public class SurveyController {
         survey.setTitle(updatedSurvey.getTitle());
         survey.setDescription(updatedSurvey.getDescription());
         survey.setRequireAuth(updatedSurvey.isRequireAuth());
+        survey.setPublic(updatedSurvey.isPublic());
 
         return ResponseEntity.ok(surveyService.save(survey));
     }

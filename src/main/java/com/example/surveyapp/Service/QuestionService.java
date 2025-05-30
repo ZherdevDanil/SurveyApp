@@ -4,35 +4,36 @@ import com.example.surveyapp.Entity.Option;
 import com.example.surveyapp.Entity.Question;
 import com.example.surveyapp.Entity.QuestionType;
 import com.example.surveyapp.Entity.Survey;
+import com.example.surveyapp.Repository.AnswerRepository;
 import com.example.surveyapp.Repository.OptionRepository;
 import com.example.surveyapp.Repository.QuestionRepository;
 import com.example.surveyapp.Repository.SurveyRepository;
 import com.example.surveyapp.dto.CreateOptionRequest;
-import com.example.surveyapp.dto.CreateQuestionRequest;
 import com.example.surveyapp.dto.QuestionUpdateDto;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.AccessDeniedException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class QuestionService {
 
-    public final QuestionRepository questionRepository;
-    public final OptionRepository optionRepository;
-    public final SurveyRepository surveyRepository;
+    private final QuestionRepository questionRepository;
+    private final OptionRepository optionRepository;
+    private final SurveyRepository surveyRepository;
 
     private final UserService userService;
 
-    public QuestionService(QuestionRepository questionRepository, OptionRepository optionRepository, SurveyRepository surveyRepository, UserService userService) {
+    private final AnswerRepository answerRepository;
+
+    public QuestionService(QuestionRepository questionRepository, OptionRepository optionRepository, SurveyRepository surveyRepository, UserService userService, AnswerRepository answerRepository) {
         this.questionRepository = questionRepository;
         this.optionRepository = optionRepository;
         this.surveyRepository = surveyRepository;
         this.userService = userService;
+        this.answerRepository = answerRepository;
     }
 
     public Question addQuestionToSurvey(Long surveyId, Question question){
@@ -101,6 +102,10 @@ public class QuestionService {
 
     @Transactional
     public Question updateQuestion(Long questionId, QuestionUpdateDto questionUpdateDto, String username) throws AccessDeniedException {
+        boolean hasAnswers = answerRepository.existsByQuestionId(questionId);
+        if (hasAnswers){
+            throw new IllegalArgumentException("This question already have answers, edit is not allowed ");
+        }
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new EntityNotFoundException("Question not found"));
 
