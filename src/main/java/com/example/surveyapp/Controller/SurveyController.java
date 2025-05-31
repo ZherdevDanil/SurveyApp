@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.nio.channels.AcceptPendingException;
 import java.nio.file.AccessDeniedException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,11 +47,20 @@ public class SurveyController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<UpdateSurveyRequest> getSurveyById(@PathVariable Long id) {
+    public ResponseEntity<UpdateSurveyRequest> getSurveyById(@PathVariable Long id) throws AccessDeniedException {
+        Survey survey = surveyService.findById(id).get();
+        /*if(!survey.isActive() || (survey.getActiveFrom() != null && Instant.now().isBefore(survey.getActiveFrom()))
+                || (survey.getActiveUntil()!=null && Instant.now().isAfter(survey.getActiveUntil()))){
+            throw new AccessDeniedException("Опитування не активне");
+        }*/
 
         return ResponseEntity.ok(surveyService.getSurveyDetails(id));
     }
 
+    @GetMapping("/survey-details/{id}")
+    public ResponseEntity<UpdateSurveyRequest> getSurveyDetailsById(@PathVariable Long id) throws AccessDeniedException {
+        return ResponseEntity.ok(surveyService.getSurveyDetails(id));
+    }
 
     @GetMapping
     public ResponseEntity<List<Survey>> getAllUserSurveys(HttpServletRequest httpServletRequest) {
@@ -94,5 +104,13 @@ public class SurveyController {
 
         return ResponseEntity.ok(surveyService.save(survey));
     }
+
+    @PutMapping("/{id}/finish")
+    public ResponseEntity<Survey> finish(@PathVariable Long id , HttpServletRequest httpServletRequest) throws AccessDeniedException {
+        String username = surveyService.extractUsername(httpServletRequest);
+        Survey finishedSurvey = surveyService.finishSurvey(id,username);
+        return ResponseEntity.ok(finishedSurvey);
+    }
+
 }
 

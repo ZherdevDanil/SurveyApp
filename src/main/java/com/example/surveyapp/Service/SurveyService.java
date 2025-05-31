@@ -6,8 +6,10 @@ import com.example.surveyapp.Security.JwtService;
 import com.example.surveyapp.dto.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -47,8 +49,10 @@ public class SurveyService {
                 .title(createSurveyRequest.getTitle())
                 .description(createSurveyRequest.getDescription())
                 .requireAuth(createSurveyRequest.isRequireAuth())
+                .activeFrom(createSurveyRequest.getActiveFrom())
+                .activeUntil(createSurveyRequest.getActiveUntil())
                 .creator(creator)
-                .isActive(false)
+                .isActive(true)
                 .isPublic(createSurveyRequest.isPublic())
                 .build();
         System.out.println("Чи saved survey - public"+survey.isPublic());
@@ -134,8 +138,19 @@ public class SurveyService {
                 .title(survey.getTitle())
                 .description(survey.getDescription())
                 .requireAuth(survey.isRequireAuth())
+                .isActive(survey.isActive())
                 .questions(questionDtos)
                 .build();
+    }
+
+    @Transactional
+    public Survey finishSurvey(Long surveyId,String username) throws AccessDeniedException {
+        Survey survey = surveyRepository.findById(surveyId).orElseThrow(()->new EntityNotFoundException());
+        if (!survey.getCreator().getUsername().equals(username)){
+            throw new AccessDeniedException("You are not allowed");
+        }
+        survey.setActive(false);
+        return surveyRepository.save(survey);
     }
 
 
