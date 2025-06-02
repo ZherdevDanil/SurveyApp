@@ -19,8 +19,9 @@ import java.time.LocalDateTime;
 public class Survey {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @Column(nullable = false, length = 1000)
     private String title;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private boolean requireAuth;
     private boolean isActive;
