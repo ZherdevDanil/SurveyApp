@@ -1,5 +1,6 @@
 package com.example.surveyapp.Entity;
 
+import com.example.surveyapp.util.StringEncryptConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,7 +22,7 @@ public class Option {
     @JoinColumn(name = "question_id")
     @JsonBackReference
     private Question question;
-
+    //@Convert(converter = StringEncryptConverter.class)
     private String text;
     private Integer position;
 }

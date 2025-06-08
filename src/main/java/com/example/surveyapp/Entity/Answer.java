@@ -1,5 +1,6 @@
 package com.example.surveyapp.Entity;
 
+import com.example.surveyapp.util.StringEncryptConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +24,7 @@ public class Answer {
 
     @ManyToOne(optional = false)
     private Question question;
-
+    //@Convert(converter = StringEncryptConverter.class)
     private String textAnswer;
 
     @ManyToMany

@@ -1,5 +1,6 @@
 package com.example.surveyapp.Entity;
 
+import com.example.surveyapp.util.StringEncryptConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,10 +20,12 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    @Convert(disableConversion = true)
     private String username;
+    //@Convert(converter = StringEncryptConverter.class)
     private String email;
 
+    @Convert(disableConversion = true)
     private String password;
 
 

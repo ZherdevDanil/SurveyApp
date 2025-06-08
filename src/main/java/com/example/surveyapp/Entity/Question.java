@@ -1,5 +1,6 @@
 package com.example.surveyapp.Entity;
 
+import com.example.surveyapp.util.StringEncryptConverter;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,7 +22,7 @@ public class Question {
     @ManyToOne
     @JoinColumn(name = "survey_id", nullable = false)
     private Survey survey;
-
+    //@Convert(converter = StringEncryptConverter.class)
     private String text;
 
     @Enumerated(EnumType.STRING)
