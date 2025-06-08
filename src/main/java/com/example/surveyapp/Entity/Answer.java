@@ -18,7 +18,7 @@ public class Answer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(optional = true)
     private User respondent;
 
     @ManyToOne(optional = false)

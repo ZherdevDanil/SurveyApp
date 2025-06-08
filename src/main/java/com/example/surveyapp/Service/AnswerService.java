@@ -37,7 +37,7 @@ public class AnswerService {
     public Answer submitAnswer( AnswerRequest answerRequest, String username) throws AccessDeniedException {
         Question question = questionRepository.findById(answerRequest.getQuestionId()).orElseThrow(()->new EntityNotFoundException("Question not found"));
 
-        User user = new User();
+        User user = null;
 
         if (username != null){
             user = userRepository.findByUsername(username).orElseThrow(()->new EntityNotFoundException("User not found"));
@@ -45,6 +45,10 @@ public class AnswerService {
 
         if (user != null && answerRepository.findByRespondentAndQuestion(user,question).isPresent()){
             throw new AccessDeniedException("You already answered to this question");
+        } else {
+            if (question.getSurvey().isRequireAuth()){
+                throw new AccessDeniedException("Authentication requeired to answer this survey");
+            }
         }
 
         Answer answer = Answer.builder()
